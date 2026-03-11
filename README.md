@@ -1,6 +1,6 @@
-# 🟢 FriendActivityTimeline
+# 🎵 MusicMenu
 
-> A BetterDiscord plugin that adds a live floating feed of everything your friends do — games, status changes, voice channels, and streams — all in one sleek draggable overlay.
+> A floating music player plugin for BetterDiscord. Search and play YouTube and SoundCloud tracks directly inside Discord — no external apps, no switching windows.
 
 **by pagoni meow** • v1.0.0 • No dependencies required
 
@@ -8,54 +8,45 @@
 
 ## What Is It?
 
-FriendActivityTimeline watches your Discord friends list in the background and logs every activity change into a beautiful, scrollable timeline panel that floats on top of your Discord client. The moment a friend launches a game, hops into voice, goes online, or starts streaming — it shows up instantly.
-
-Think of it like a social activity feed, but built directly into Discord. No bots. No external servers. No extra installs. Everything runs locally inside your client.
+MusicMenu adds a sleek draggable music panel to Discord. Type a search term or paste a URL, hit play, and your music starts right inside your client. Supports a queue system so you can line up multiple tracks and cycle through them while you chat.
 
 ---
 
 ## Features
 
-### 📋 Live Activity Feed
-Polls every 5 seconds and prepends new events to the top of the feed. Each entry shows the friend's avatar, display name, what they did, and how long ago it happened (auto-updating — "2m ago", "1h ago", etc.).
+### 🎬 YouTube Playback
+- Paste any YouTube URL or video ID to load it instantly
+- Or just type a search term — MusicMenu finds the first result automatically
+- Full embedded player with native YouTube controls
+- No API key required
 
-### 🎯 Tracked Events
+### 🔊 SoundCloud Playback
+- Paste any public SoundCloud track URL to load it in the official SoundCloud widget
+- Or search by name — MusicMenu finds the first matching track
+- Autoplay on load
 
-| Icon | Event | Description |
-|------|-------|-------------|
-| 🎮 | Game Started | Friend launched a game tracked by Discord |
-| 🎮 | Game Stopped | Friend closed the game they were playing |
-| 🟢 | Came Online | Friend switched to online status |
-| 🔴 | Set DND | Friend enabled Do Not Disturb |
-| 🌙 | Went Idle | Friend went away from keyboard |
-| ⚫ | Went Offline | Friend disconnected or went invisible |
-| 🔊 | Joined Voice | Friend connected to a voice channel |
-| 🔇 | Left Voice | Friend disconnected from voice |
-| 📡 | Stream Started | Friend started streaming or screen sharing |
-| 📡 | Stream Stopped | Friend ended their stream |
+### 📋 Queue System
+- Every search adds a track to your queue
+- Click any queued track to jump to it
+- ⏮ ⏭ buttons to cycle through the queue
+- ✕ button on each track to remove it individually
 
-### 🪟 Floating Draggable Overlay
-A sleek frosted-glass panel that sits on top of Discord without blocking anything. Drag it anywhere by the header — position saves automatically and persists across restarts.
+### 🎚️ Volume Control
+- Slider controls YouTube playback volume
+- Setting saves between Discord restarts
 
-### 🔘 Collapse & Clear
-- **✕** — clears the entire feed
-- **−** — collapses the panel to just the title bar; click again to expand
-
-### 🔁 Sidebar Toggle
-A small icon button injected into Discord's left toolbar lets you show/hide the overlay at any time without disabling the plugin.
-
-### 🧠 Smart Deduplication
-Caches each friend's last known state. Only actual changes get logged — no duplicate events, no spam if Discord re-sends the same presence data.
-
-### 🎚️ Adjustable Opacity
-Slider in settings lets you dial the panel from 20% (nearly invisible) to 100% (fully opaque).
+### 🪟 Floating Draggable Panel
+- Drag anywhere on screen by the header
+- Position saves and restores automatically
+- Collapse to just the title bar with the − button
+- Hide/show with the music note toggle button in the sidebar
 
 ---
 
 ## Installation
 
 1. Install [BetterDiscord](https://betterdiscord.app) if you haven't already
-2. Download [`FriendActivityTimeline.plugin.js`](./FriendActivityTimeline.plugin.js)
+2. Download [`MusicMenu.plugin.js`](./MusicMenu.plugin.js)
 3. Drop it into your BetterDiscord plugins folder:
 
 | OS | Path |
@@ -64,49 +55,47 @@ Slider in settings lets you dial the panel from 20% (nearly invisible) to 100% (
 | macOS | `~/Library/Application Support/BetterDiscord/plugins/` |
 | Linux | `~/.config/BetterDiscord/plugins/` |
 
-4. Open Discord → Settings → Plugins → enable **FriendActivityTimeline**
-5. The timeline panel appears in the bottom-right corner immediately
+4. Open Discord → Settings → Plugins → enable **MusicMenu**
+5. The panel appears in the bottom-right corner. A music note icon is added to the left sidebar to toggle it.
 
 ---
 
 ## Usage
 
-| Action | How |
-|--------|-----|
-| Move the panel | Click and drag the header |
-| Collapse | Click **−** in the header |
-| Clear feed | Click **✕** in the header |
-| Hide/show | Click the person icon in the left sidebar |
-| Reset position | Settings → Reset Position button |
+### Playing a YouTube track
+```
+1. Click the YouTube tab
+2. Paste a URL like https://www.youtube.com/watch?v=dQw4w9WgXcQ
+   OR type a search term like:  lofi hip hop
+3. Hit Enter or click ▶
+```
+
+### Playing a SoundCloud track
+```
+1. Click the SoundCloud tab
+2. Paste a URL like https://soundcloud.com/artist/trackname
+   OR type a search term like:  phonk mix
+3. Hit Enter or click ▶
+```
+
+### Queue controls
+
+| Button | Action |
+|--------|--------|
+| ⏮ | Previous track in queue |
+| ▶ / ⏸ | Play / Pause (YouTube only) |
+| ⏭ | Next track in queue |
+| Track row click | Jump to that track |
+| ✕ on track | Remove from queue |
 
 ---
 
-## Settings
+## Notes
 
-Open Discord Settings → Plugins → FriendActivityTimeline → ⚙️
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Show Games | ON | Track game start/stop events |
-| Show Status Changes | ON | Track online/offline/idle/DND |
-| Show Voice Activity | ON | Track voice channel joins and leaves |
-| Show Streams | ON | Track stream start/stop events |
-| Opacity | 90% | Panel transparency (20–100%) |
-| Reset Position | Button | Snaps panel back to default position |
-
----
-
-## How It Works
-
-Every 5 seconds the plugin reads from Discord's internal data stores — the same ones Discord uses to show presence in the member list:
-
-1. Fetches your friends list from `RelationshipStore`
-2. Reads each friend's status and activities from `PresenceStore`
-3. Checks voice channel state from `VoiceStateStore`
-4. Diffs current state against a locally cached snapshot
-5. If anything changed → new event is prepended to the feed
-
-No data ever leaves your machine. No API calls. No accounts. Just Discord's own presence data that it already shows you.
+- **Search scrapes YouTube/SoundCloud directly** — no API keys, but results may occasionally miss for unusual queries. Pasting a direct URL always works.
+- **SoundCloud volume** is controlled by the widget's own internal slider, not the MusicMenu volume control (which only affects YouTube).
+- **YouTube requires an internet connection** to load the IFrame API on first use. After that it's cached by Electron.
+- The panel **does not persist your queue** between Discord restarts — it resets when Discord closes.
 
 ---
 
@@ -114,27 +103,18 @@ No data ever leaves your machine. No API calls. No accounts. Just Discord's own 
 
 | Problem | Fix |
 |---------|-----|
-| Panel doesn't appear | Make sure the plugin is enabled; try the sidebar toggle button |
-| No events in the feed | The feed only logs *changes* — wait for a friend to do something |
-| Panel went off-screen | Settings → Reset Position |
-| Plugin fails to start | Make sure BetterDiscord is up to date |
-| Avatars not loading | Discord CDN issue — fallback avatar is used automatically |
-
----
-
-## Technical Notes
-
-- Uses `BdApi.findModuleByProps` to access Discord's internal Webpack modules — no `require()` calls, no external libraries
-- Activity type `0` = Playing, type `1` = Streaming
-- Events are stored in memory only (capped at 100) — feed clears on Discord restart
-- If Discord updates and breaks module lookups, the plugin may need a store name update
+| Panel doesn't appear | Make sure the plugin is enabled. Click the music note icon in the left sidebar. |
+| YouTube player shows a blank box | Wait a second for the YouTube IFrame API to load, then search again. |
+| Search returns no results | Try pasting a direct URL instead of searching by name. |
+| SoundCloud track won't play | Make sure the track is public. Private tracks can't be embedded. |
+| Panel went off-screen | Settings → Plugins → MusicMenu → Reset Panel Position. |
 
 ---
 
 ## Disclaimer
 
-This plugin only reads presence data that Discord already displays to you. It does not intercept messages, modify traffic, or transmit any data externally. As with all BetterDiscord plugins, use at your own discretion.
+This plugin embeds YouTube and SoundCloud content using their official public embed/widget APIs. It does not download, redistribute, or circumvent any DRM. Use in accordance with YouTube's and SoundCloud's respective terms of service.
 
 ---
 
-*FriendActivityTimeline v1.0.0 — by pagoni meow*
+*MusicMenu v1.0.0 — by pagoni meow*
