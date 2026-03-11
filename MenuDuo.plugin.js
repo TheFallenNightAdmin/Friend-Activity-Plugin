@@ -1,8 +1,8 @@
 /**
  * @name DiscordMenu
  * @author pagoni meow
- * @description Music player (Tab) + Theme switcher (Esc) in one plugin.
- * @version 1.0.2
+ * @description Music player (Alt + M) + Theme switcher (Esc) in one plugin.
+ * @version 1.0.3
  */
 
 module.exports = (() => {
@@ -227,8 +227,7 @@ module.exports = (() => {
                 return;
             }
 
-            if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                if (tag === 'INPUT' || typing) return;
+            if (e.key === 'm' && e.altKey && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
                 const p = document.getElementById('mm-panel');
                 if (!p) { this._mmBuildPanel(); return; }
@@ -475,7 +474,7 @@ module.exports = (() => {
                         "<input id='mm-vol' type='range' min='0' max='100' value='" + this.settings.volume + "'>" +
                         "<span id='mm-vol-val'>" + this.settings.volume + "%</span>" +
                     "</div>" +
-                    "<div id='mm-queue-label'>Queue <span id='mm-tab-hint'>\u21e5 Tab to toggle</span></div>" +
+                    "<div id='mm-queue-label'>Queue <span id='mm-tab-hint'>Alt+M to toggle</span></div>" +
                     "<div id='mm-queue'><div class='mm-q-empty'>Search something to add to your queue</div></div>" +
                 "</div>";
             document.body.appendChild(panel);
@@ -814,7 +813,7 @@ module.exports = (() => {
             const wrap = document.createElement('div');
             wrap.style.cssText = 'padding:16px;color:var(--text-normal);font-family:var(--font-primary);max-width:420px;';
             const note = document.createElement('p');
-            note.textContent = 'Tab \u2014 toggle MusicMenu   \u00b7   Esc \u2014 toggle Theme Switcher. The music panel colors adapt to your active Discord theme automatically.';
+            note.textContent = 'Alt+M \u2014 toggle MusicMenu   \u00b7   Esc \u2014 toggle Theme Switcher. The music panel colors adapt to your active Discord theme automatically.';
             note.style.cssText = 'font-size:14px;line-height:1.6;color:var(--text-muted);margin-bottom:12px;';
             const rst = document.createElement('button');
             rst.textContent = 'Reset Music Panel Position';
