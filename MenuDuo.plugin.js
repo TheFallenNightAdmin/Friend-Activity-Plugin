@@ -2,7 +2,7 @@
  * @name DiscordMenu
  * @author pagoni meow
  * @description Music player (Tab) + Theme switcher (Esc) in one plugin.
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 module.exports = (() => {
@@ -250,10 +250,7 @@ module.exports = (() => {
                 try { BdApi.Data.save('DiscordMenu','activeName', null); } catch(e) {}
                 this._syncUI(); return;
             }
-            themes.forEach(t => { try { BdApi.Themes.disable(t.name); } catch(_) {} });
-            document.querySelectorAll('style[id^="bd-"], bd-themes, #bd-stylesheet, link[href*=".theme.css"]').forEach(el => {
-                try { el.remove(); } catch(_) {}
-            });
+            themes.forEach(t => { if (t.name !== name) try { BdApi.Themes.disable(t.name); } catch(_) {} });
             BdApi.Themes.enable(name);
             this._activeName = name;
             try { BdApi.Data.save('DiscordMenu','activeName', name); } catch(e) {}
@@ -264,9 +261,6 @@ module.exports = (() => {
         _resetTheme() {
             const themes = this._getThemes();
             themes.forEach(t => { try { BdApi.Themes.disable(t.name); } catch(_) {} });
-            document.querySelectorAll('style[id^="bd-"], bd-themes, #bd-stylesheet, link[href*=".theme.css"]').forEach(el => {
-                try { el.remove(); } catch(_) {}
-            });
             this._activeName = null;
             try { BdApi.Data.save('DiscordMenu','activeName', null); } catch(e) {}
             this._syncUI();
@@ -699,7 +693,9 @@ module.exports = (() => {
             this._mmApplyTheme();
             this._themeOb = new MutationObserver(() => this._mmApplyTheme());
             this._themeOb.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-            this._themeOb.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+            this._themeOb.observe(document.body,            { attributes: true, attributeFilter: ['class'] });
+            // Also watch for new <style>/<link> tags injected by BD themes (CSS variable source)
+            this._themeOb.observe(document.head,            { childList: true });
         }
 
         _mmGetColors() {
