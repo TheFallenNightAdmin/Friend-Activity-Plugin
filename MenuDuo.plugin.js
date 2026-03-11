@@ -2,7 +2,7 @@
  * @name DiscordMenu
  * @author pagoni meow
  * @description Music player (Tab) + Theme switcher (Esc) in one plugin.
- * @version 1.0.1
+ * @version 1.0.2
  */
 
 module.exports = (() => {
@@ -178,15 +178,18 @@ module.exports = (() => {
             });
             this._tsObserver.observe(document.body, { childList: true, subtree: false });
 
-            const themes = this._getThemes();
-            if (this._activeName && themes.find(t => t.name === this._activeName)) {
-                this._applyTheme(this._activeName, true);
-            } else if (themes.length > 0) {
-                const pick = themes[Math.floor(Math.random() * themes.length)];
-                this._applyTheme(pick.name, false);
-            } else {
-                try { BdApi.UI.showToast('DiscordMenu: No installed themes found.', { type:'warning', timeout:4000 }); } catch(e) {}
+            // Only re-apply a previously saved theme; never randomly switch on load
+            if (this._activeName) {
+                const themes = this._getThemes();
+                if (themes.find(t => t.name === this._activeName)) {
+                    this._applyTheme(this._activeName, true);
+                } else {
+                    // saved theme no longer exists, clear it
+                    this._activeName = null;
+                    try { BdApi.Data.save('DiscordMenu','activeName', null); } catch(e) {}
+                }
             }
+            this._syncUI();
         }
 
         stop() {
@@ -250,8 +253,13 @@ module.exports = (() => {
                 try { BdApi.Data.save('DiscordMenu','activeName', null); } catch(e) {}
                 this._syncUI(); return;
             }
-            themes.forEach(t => { if (t.name !== name) try { BdApi.Themes.disable(t.name); } catch(_) {} });
-            BdApi.Themes.enable(name);
+            // Disable all others first, then enable the chosen one
+            themes.forEach(t => {
+                try {
+                    if (t.name === name) BdApi.Themes.enable(t.name);
+                    else BdApi.Themes.disable(t.name);
+                } catch(_) {}
+            });
             this._activeName = name;
             try { BdApi.Data.save('DiscordMenu','activeName', name); } catch(e) {}
             this._syncUI();
@@ -694,7 +702,6 @@ module.exports = (() => {
             this._themeOb = new MutationObserver(() => this._mmApplyTheme());
             this._themeOb.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
             this._themeOb.observe(document.body,            { attributes: true, attributeFilter: ['class'] });
-            // Also watch for new <style>/<link> tags injected by BD themes (CSS variable source)
             this._themeOb.observe(document.head,            { childList: true });
         }
 
@@ -722,13 +729,21 @@ module.exports = (() => {
             const faint  = c.isLight ? 'rgba(0,0,0,.06)'  : 'rgba(255,255,255,.06)';
             const hover  = c.isLight ? 'rgba(0,0,0,.08)'  : 'rgba(255,255,255,.08)';
             const scroll = c.isLight ? 'rgba(0,0,0,.12)'  : 'rgba(255,255,255,.08)';
-            const vars   = '--mm-bg:' + c.bg + ';--mm-bg2:' + c.bgSec + ';--mm-bg3:' + c.bgTer +
-                           ';--mm-txt:' + c.txt + ';--mm-muted:' + c.muted + ';--mm-faint:' + faint +
-                           ';--mm-hover:' + hover + ';--mm-border:' + c.border + ';--mm-accent:' + c.accent + ';--mm-scroll:' + scroll;
+            const vars = {
+                '--mm-bg':     c.bg,
+                '--mm-bg2':    c.bgSec,
+                '--mm-bg3':    c.bgTer,
+                '--mm-txt':    c.txt,
+                '--mm-muted':  c.muted,
+                '--mm-faint':  faint,
+                '--mm-hover':  hover,
+                '--mm-border': c.border,
+                '--mm-accent': c.accent,
+                '--mm-scroll': scroll,
+            };
             ['mm-panel','mm-toggle'].forEach(id => {
                 const el = document.getElementById(id); if (!el) return;
-                const cur = el.getAttribute('style') || '';
-                el.setAttribute('style', cur.replace(/--mm-[^;]+;?/g,'') + ';' + vars);
+                Object.entries(vars).forEach(([k,v]) => el.style.setProperty(k, v));
             });
             const styleEl = document.getElementById('mm-style');
             if (styleEl) styleEl.textContent = this._mmBuildCSS();
@@ -803,7 +818,19 @@ module.exports = (() => {
             note.style.cssText = 'font-size:14px;line-height:1.6;color:var(--text-muted);margin-bottom:12px;';
             const rst = document.createElement('button');
             rst.textContent = 'Reset Music Panel Position';
-            rst.style.cssText = 'padding:7px 14px;background:rgba(255,255,255,.07);color:var(--text-normal);border:1px solid rgba(255,255,255,.1);border-radius:4px;cursor:pointer;font-size:13px;';
+            rst.style.cssText = [
+                'padding:7px 14px;',
+                'background:var(--background-secondary);',
+                'color:var(--text-normal);',
+                'border:1px solid var(--background-modifier-accent);',
+                'border-radius:4px;',
+                'cursor:pointer;',
+                'font-size:13px;',
+                'font-family:var(--font-primary);',
+                'transition:background .15s;',
+            ].join('');
+            rst.addEventListener('mouseenter', () => rst.style.background = 'var(--background-modifier-hover)');
+            rst.addEventListener('mouseleave', () => rst.style.background = 'var(--background-secondary)');
             rst.addEventListener('click', () => {
                 this.settings.x = null; this.settings.y = null; this.save();
                 const p = document.getElementById('mm-panel'); if (p) p.remove();
